@@ -1,122 +1,128 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import { useAuth } from './context/useAuth'
+import ProtectedRoute from './components/auth/ProtectedRoute'
+import RoleRoute from './components/auth/RoleRoute'
+import DashboardLayout from './components/layout/DashboardLayout'
 
-function App() {
-  const [count, setCount] = useState(0)
+// Auth Pages
+import LoginPage from './pages/auth/LoginPage'
+import RegisterPage from './pages/auth/RegisterPage'
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+// Student Pages
+import StudentDashboard from './pages/student/StudentDashboard'
+import StudentCoursesPage from './pages/student/StudentCoursesPage'
+import StudentRiskPage from './pages/student/StudentRiskPage'
+import StudentInterventionsPage from './pages/student/StudentInterventionsPage'
 
-      <div className="ticks"></div>
+// Lecturer Pages
+import LecturerDashboard from './pages/lecturer/LecturerDashboard'
+import LecturerCoursesPage from './pages/lecturer/LecturerCoursesPage'
+import LecturerRecordEntryPage from './pages/lecturer/LecturerRecordEntryPage'
+import LecturerEvaluationsPage from './pages/lecturer/LecturerEvaluationsPage'
+import LecturerInterventionsPage from './pages/lecturer/LecturerInterventionsPage'
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+// Counsellor Pages
+import CounsellorDashboard from './pages/counsellor/CounsellorDashboard'
+import CounsellorStudentsPage from './pages/counsellor/CounsellorStudentsPage'
+import CounsellorRiskPage from './pages/counsellor/CounsellorRiskPage'
+import CounsellorInterventionsPage from './pages/counsellor/CounsellorInterventionsPage'
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+// Admin Pages
+import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminSessionsPage from './pages/admin/AdminSessionsPage'
+import AdminCoursesPage from './pages/admin/AdminCoursesPage'
+import AdminOfferingsPage from './pages/admin/AdminOfferingsPage'
+import AdminStaffPage from './pages/admin/AdminStaffPage'
+import AdminModelsPage from './pages/admin/AdminModelsPage'
+
+function RootRedirect() {
+  const { user, role, isLoading } = useAuth()
+
+  if (isLoading) {
+    return null
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
+  const roleRedirects = {
+    student: '/student',
+    lecturer: '/lecturer',
+    counsellor: '/counsellor',
+    admin: '/admin',
+  }
+
+  return <Navigate to={roleRedirects[role] || '/login'} replace />
 }
 
-export default App
+export default function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Authentication Routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+
+          {/* Root redirect */}
+          <Route path="/" element={<RootRedirect />} />
+
+          {/* Protected Application Routes */}
+          <Route element={<ProtectedRoute />}>
+            {/* Student Routes */}
+            <Route element={<RoleRoute allowedRoles={['student']} />}>
+              <Route path="/student" element={<DashboardLayout />}>
+                <Route index element={<StudentDashboard />} />
+                <Route path="courses" element={<StudentCoursesPage />} />
+                <Route path="risk" element={<StudentRiskPage />} />
+                <Route path="interventions" element={<StudentInterventionsPage />} />
+                <Route path="*" element={<StudentDashboard />} />
+              </Route>
+            </Route>
+
+            {/* Lecturer Routes */}
+            <Route element={<RoleRoute allowedRoles={['lecturer']} />}>
+              <Route path="/lecturer" element={<DashboardLayout />}>
+                <Route index element={<LecturerDashboard />} />
+                <Route path="courses" element={<LecturerCoursesPage />} />
+                <Route path="records" element={<LecturerRecordEntryPage />} />
+                <Route path="evaluations" element={<LecturerEvaluationsPage />} />
+                <Route path="interventions" element={<LecturerInterventionsPage />} />
+                <Route path="*" element={<LecturerDashboard />} />
+              </Route>
+            </Route>
+
+            {/* Counsellor Routes */}
+            <Route element={<RoleRoute allowedRoles={['counsellor']} />}>
+              <Route path="/counsellor" element={<DashboardLayout />}>
+                <Route index element={<CounsellorDashboard />} />
+                <Route path="students" element={<CounsellorStudentsPage />} />
+                <Route path="risk" element={<CounsellorRiskPage />} />
+                <Route path="interventions" element={<CounsellorInterventionsPage />} />
+                <Route path="*" element={<CounsellorDashboard />} />
+              </Route>
+            </Route>
+
+            {/* Admin Routes */}
+            <Route element={<RoleRoute allowedRoles={['admin']} />}>
+              <Route path="/admin" element={<DashboardLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="sessions" element={<AdminSessionsPage />} />
+                <Route path="courses" element={<AdminCoursesPage />} />
+                <Route path="offerings" element={<AdminOfferingsPage />} />
+                <Route path="staff" element={<AdminStaffPage />} />
+                <Route path="models" element={<AdminModelsPage />} />
+                <Route path="*" element={<AdminDashboard />} />
+              </Route>
+            </Route>
+          </Route>
+
+          {/* Catch-all Fallback */}
+          <Route path="*" element={<RootRedirect />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  )
+}
